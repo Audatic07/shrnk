@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+.astro/
+.output/
+.vercel/
+.netlify/
+.wrangler/
+
+# Test / coverage
+coverage/
+test-results/
+playwright-report/
+.playwright/
+
+# Caches
+.cache/
+.turbo/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Large media fixtures (generated, never committed — see C075)
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.flv
+*.gif
+*.mp3
+*.aac
+*.wav
+*.m4a
+*.heic
+*.pdf
+!docs/**/*.pdf
