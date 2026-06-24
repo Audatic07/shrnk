@@ -15,6 +15,9 @@
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp"]
+  },
   "devDependencies": {
     "typescript": "^5.7.2"
   }
