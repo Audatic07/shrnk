@@ -1,8 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "noEmit": true
-  },
-  "files": [],
-  "references": []
+  "include": ["vitest.config.ts", "test"],
+  "exclude": ["node_modules"]
 }

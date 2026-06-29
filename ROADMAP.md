@@ -18,13 +18,13 @@ single box never falls over — the #1 reason indie tools die at scale is remove
 
 **Non-negotiable invariants (enforced for the life of the project):**
 
-1. **No file bytes ever touch the network.** Analytics may send *aggregate numbers*
+1. **No file bytes ever touch the network.** Analytics may send _aggregate numbers_
    (MB processed, ratio, ms) but never file content, names, or thumbnails. This is the
    brand. One violation kills the value prop.
 2. **Static-deployable.** No origin server in the hot path. Anything dynamic must be
    build-time or edge-cached static.
 3. **Graceful degradation.** Multi-threaded (SharedArrayBuffer) path when available,
-   single-threaded fallback always works. Old/locked-down browsers still get *a* result.
+   single-threaded fallback always works. Old/locked-down browsers still get _a_ result.
 4. **The tab must not crash.** Large files stream; memory is budgeted; OOM is caught and
    reported, never a white screen.
 5. **Every programmatic page is a real, working tool** — never a thin doorway page.
@@ -32,7 +32,7 @@ single box never falls over — the #1 reason indie tools die at scale is remove
 **Resume-worthy depth (the parts that are actually hard):**
 
 - The bitrate-search loop that converges on a size budget at max quality.
-- Web Workers + SharedArrayBuffer + cross-origin isolation on a *static* host.
+- Web Workers + SharedArrayBuffer + cross-origin isolation on a _static_ host.
 - Streaming multi-hundred-MB files through wasm without OOM (WORKERFS mounting).
 - A programmatic-SEO engine that scales pages without tripping thin-content penalties.
 
@@ -40,21 +40,21 @@ single box never falls over — the #1 reason indie tools die at scale is remove
 
 ## 1. Tech-stack decisions (opinionated, with rationale)
 
-| Concern            | Choice                                                                                                                                  | Why                                                                                                                                                                    |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Site framework     | **Astro**                                                                                                                         | Ships static HTML per route (great LCP/SEO), hydrates the compressor as an island only on tool pages. Heavy wasm never loads on content pages.                         |
-| Compressor UI      | **Preact or Svelte island**                                                                                                       | Tiny runtime; the app is one interactive island, not a SPA.                                                                                                            |
-| Video/audio engine | **ffmpeg.wasm** (`@ffmpeg/ffmpeg` 0.12+), both `@ffmpeg/core` (ST) and `@ffmpeg/core-mt` (MT)                               | MT needs SharedArrayBuffer; ST is the universal fallback.                                                                                                              |
-| Image engine       | **Canvas/`createImageBitmap` first**, then `mozjpeg`/`oxipng`/`libwebp` wasm for better ratios; `libheif` wasm for HEIC | Canvas is zero-dependency and covers 80%; wasm codecs win the quality/ratio benchmarks.                                                                                |
-| PDF engine         | **mupdf-wasm** or **Ghostscript-wasm** (image downsample + re-encode + font subset)                                         | ffmpeg can't touch PDF. This is a separate engine — budget for it.                                                                                                    |
-| Hosting            | **Cloudflare Pages** (primary)                                                                                                    | Free, global edge, supports custom`_headers` for COOP/COEP, generous bandwidth. GitHub Pages can't set headers → needs the service-worker COI hack (fallback only). |
-| Analytics          | **Cloudflare Web Analytics or self-hosted Umami** + custom client events                                                          | Cookieless, privacy-respecting — consistent with the brand.                                                                                                           |
-| Search data        | **Google Search Console + Bing Webmaster**                                                                                        | Source of truth for rankings/impressions/CTR.                                                                                                                          |
-| Lang/tooling       | **TypeScript, Vite (via Astro), pnpm, Vitest, Playwright**                                                                        | Type safety around the worker protocol; Playwright drives real-file E2E.                                                                                               |
-| CI/CD              | **GitHub Actions** → build → Lighthouse CI gate → deploy to CF Pages                                                           | Performance budget enforced on every PR.                                                                                                                               |
+| Concern            | Choice                                                                                                                  | Why                                                                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Site framework     | **Astro**                                                                                                               | Ships static HTML per route (great LCP/SEO), hydrates the compressor as an island only on tool pages. Heavy wasm never loads on content pages.                      |
+| Compressor UI      | **Preact or Svelte island**                                                                                             | Tiny runtime; the app is one interactive island, not a SPA.                                                                                                         |
+| Video/audio engine | **ffmpeg.wasm** (`@ffmpeg/ffmpeg` 0.12+), both `@ffmpeg/core` (ST) and `@ffmpeg/core-mt` (MT)                           | MT needs SharedArrayBuffer; ST is the universal fallback.                                                                                                           |
+| Image engine       | **Canvas/`createImageBitmap` first**, then `mozjpeg`/`oxipng`/`libwebp` wasm for better ratios; `libheif` wasm for HEIC | Canvas is zero-dependency and covers 80%; wasm codecs win the quality/ratio benchmarks.                                                                             |
+| PDF engine         | **mupdf-wasm** or **Ghostscript-wasm** (image downsample + re-encode + font subset)                                     | ffmpeg can't touch PDF. This is a separate engine — budget for it.                                                                                                  |
+| Hosting            | **Cloudflare Pages** (primary)                                                                                          | Free, global edge, supports custom`_headers` for COOP/COEP, generous bandwidth. GitHub Pages can't set headers → needs the service-worker COI hack (fallback only). |
+| Analytics          | **Cloudflare Web Analytics or self-hosted Umami** + custom client events                                                | Cookieless, privacy-respecting — consistent with the brand.                                                                                                         |
+| Search data        | **Google Search Console + Bing Webmaster**                                                                              | Source of truth for rankings/impressions/CTR.                                                                                                                       |
+| Lang/tooling       | **TypeScript, Vite (via Astro), pnpm, Vitest, Playwright**                                                              | Type safety around the worker protocol; Playwright drives real-file E2E.                                                                                            |
+| CI/CD              | **GitHub Actions** → build → Lighthouse CI gate → deploy to CF Pages                                                    | Performance budget enforced on every PR.                                                                                                                            |
 
 **Cross-origin isolation (the gotcha that bites everyone).** `SharedArrayBuffer` →
-multi-threaded ffmpeg requires the document to be *cross-origin isolated*, which requires
+multi-threaded ffmpeg requires the document to be _cross-origin isolated_, which requires
 two response headers:
 
 ```
@@ -80,7 +80,7 @@ output that fits under `B`. Naïve `bitrate = B*8/duration` overshoots/undershoo
    ffmpeg log output.
 2. **Budget split.** Reserve audio (with a quality floor, e.g. 96–128kbps, or drop to mono
    /lower for tiny budgets), reserve container overhead (~2–5%), rest is video.
-3. **Resolution/fps guard.** Below a bitrate-per-pixel threshold, *downscale* (and/or cap
+3. **Resolution/fps guard.** Below a bitrate-per-pixel threshold, _downscale_ (and/or cap
    fps) — spending bits on 1080p at 200kbps looks worse than clean 480p. Pick the rung
    (1080/720/540/480/360) that maximizes quality at the target bitrate.
 4. **Search.** Treat encoded-size as a function of the control knob and converge:
@@ -88,7 +88,7 @@ output that fits under `B`. Naïve `bitrate = B*8/duration` overshoots/undershoo
      size; ~2× time.
    - **CRF probing**: encode at a CRF, measure size, **secant/binary-search CRF→size**
      (size is monotonic in CRF). Fewer wasted passes, great quality.
-   - Hybrid: CRF probe a *short representative slice* to seed the bitrate, then one 2-pass
+   - Hybrid: CRF probe a _short representative slice_ to seed the bitrate, then one 2-pass
      full encode. Big speedup on long videos.
 5. **Converge to within tolerance** (e.g. 95–99% of `B`, never over). Cap iterations
    (3–5) so worst case is bounded. Cache the size↔knob samples to inform the next step.
@@ -132,30 +132,30 @@ packages/
 
 **Do not build 500 SEO pages before one ranks.** The arc is deliberately:
 ship **one excellent tool on one real keyword** (M5), get it indexed and measure
-real CTR/position (M6), *then* scale formats and programmatic pages (M7–M11). SEO is a
+real CTR/position (M6), _then_ scale formats and programmatic pages (M7–M11). SEO is a
 feedback loop, not a big-bang. Each later milestone is justified by data from Search Console.
 
 ---
 
 ## 5. Milestone map
 
-| Milestone | Theme                                               | Commits    | Ships at end                                    |
-| --------- | --------------------------------------------------- | ---------- | ----------------------------------------------- |
-| M0        | Foundation, tooling, hosting, COOP/COEP             | C001–C015 | Empty deployed site, CI green, headers verified |
-| M1        | ffmpeg.wasm spike (ST)                              | C016–C029 | Transcode a file in-browser (ugly but real)     |
-| M2        | Worker architecture + progress + MT detect          | C030–C043 | Non-blocking UI, MT path, cancel                |
+| Milestone | Theme                                         | Commits   | Ships at end                                    |
+| --------- | --------------------------------------------- | --------- | ----------------------------------------------- |
+| M0        | Foundation, tooling, hosting, COOP/COEP       | C001–C015 | Empty deployed site, CI green, headers verified |
+| M1        | ffmpeg.wasm spike (ST)                        | C016–C029 | Transcode a file in-browser (ugly but real)     |
+| M2        | Worker architecture + progress + MT detect    | C030–C043 | Non-blocking UI, MT path, cancel                |
 | M3        | **Target-size bitrate-search engine (video)** | C044–C065 | Hit a byte budget at max quality                |
-| M4        | Large-file handling (streaming/WORKERFS/OOM)        | C066–C079 | 500MB+ files without crashing                   |
-| M5        | First shippable tool + first landing page           | C080–C097 | "Compress video for WhatsApp" live              |
-| M6        | SEO foundation + indexing                           | C098–C113 | Sitemap, schema, indexed, GSC wired             |
-| M7        | Image compressor                                    | C114–C129 | Image tools + ratio benchmarks                  |
-| M8        | PDF compressor                                      | C130–C147 | "Reduce PDF size / under 100KB"                 |
-| M9        | Format-conversion matrix                            | C148–C163 | mov→mp4, mkv→mp4, webm→mp4, …               |
-| M10       | Programmatic SEO scale                              | C164–C181 | Hundreds of real tool pages from data           |
-| M11       | Audio + GIF                                         | C182–C195 | mp3/aac compress, video→gif, gif compress      |
-| M12       | Performance, PWA, polish                            | C196–C211 | Offline, fast LCP, a11y, i18n scaffold          |
-| M13       | Analytics, benchmarks, metrics                      | C212–C225 | MB processed, ratio, vs-server dashboard        |
-| M14       | Growth, content, hardening, launch                  | C226–C241 | Public launch, content engine, monitoring       |
+| M4        | Large-file handling (streaming/WORKERFS/OOM)  | C066–C079 | 500MB+ files without crashing                   |
+| M5        | First shippable tool + first landing page     | C080–C097 | "Compress video for WhatsApp" live              |
+| M6        | SEO foundation + indexing                     | C098–C113 | Sitemap, schema, indexed, GSC wired             |
+| M7        | Image compressor                              | C114–C129 | Image tools + ratio benchmarks                  |
+| M8        | PDF compressor                                | C130–C147 | "Reduce PDF size / under 100KB"                 |
+| M9        | Format-conversion matrix                      | C148–C163 | mov→mp4, mkv→mp4, webm→mp4, …                   |
+| M10       | Programmatic SEO scale                        | C164–C181 | Hundreds of real tool pages from data           |
+| M11       | Audio + GIF                                   | C182–C195 | mp3/aac compress, video→gif, gif compress       |
+| M12       | Performance, PWA, polish                      | C196–C211 | Offline, fast LCP, a11y, i18n scaffold          |
+| M13       | Analytics, benchmarks, metrics                | C212–C225 | MB processed, ratio, vs-server dashboard        |
+| M14       | Growth, content, hardening, launch            | C226–C241 | Public launch, content engine, monitoring       |
 
 **Total: 241 planned commits** (buffer above the 200 target for the fixes/reverts every
 real project incurs). Conventional Commits throughout (`feat:`/`fix:`/`perf:`/`docs:`/

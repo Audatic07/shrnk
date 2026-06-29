@@ -11,14 +11,41 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "test": "vitest run",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,mjs,cjs,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.astro": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml}": [
+      "prettier --write"
+    ]
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
   },
   "devDependencies": {
-    "typescript": "^5.7.2"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.5.0",
+    "eslint-plugin-astro": "^2.1.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.8.4",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.62.0",
+    "vitest": "^4.1.9"
   }
 }
